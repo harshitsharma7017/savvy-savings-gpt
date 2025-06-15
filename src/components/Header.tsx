@@ -1,13 +1,14 @@
 
 import { Wallet, Github, Twitter, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
             <Wallet className="h-6 w-6 text-white" />
           </div>
@@ -17,19 +18,19 @@ const Header = () => {
             </h1>
             <p className="text-xs text-slate-500">Smart Financial Management</p>
           </div>
-        </div>
+        </Link>
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <a href="#features" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
-            Features
-          </a>
-          <a href="#about" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
+          <Link to="/" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
+            Dashboard
+          </Link>
+          <Link to="/about" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
             About
-          </a>
-          <a href="#contact" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
+          </Link>
+          <Link to="/contact" className="text-slate-600 hover:text-blue-600 transition-colors font-medium">
             Contact
-          </a>
+          </Link>
         </nav>
 
         {/* Actions */}
