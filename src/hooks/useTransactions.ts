@@ -21,7 +21,7 @@ export const useTransactions = () => {
       const formattedTransactions: Transaction[] = data.map(t => ({
         id: t.id,
         type: t.type as 'income' | 'expense',
-        amount: parseFloat(t.amount),
+        amount: t.amount,
         category: t.category,
         description: t.description || '',
         date: t.date
@@ -59,7 +59,7 @@ export const useTransactions = () => {
       const newTransaction: Transaction = {
         id: data.id,
         type: data.type as 'income' | 'expense',
-        amount: parseFloat(data.amount),
+        amount: data.amount,
         category: data.category,
         description: data.description || '',
         date: data.date

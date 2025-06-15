@@ -21,7 +21,7 @@ export const useBudgets = () => {
       const formattedBudgets: Budget[] = data.map(b => ({
         id: b.id,
         category: b.category,
-        limit: parseFloat(b.limit_amount),
+        limit: b.limit_amount,
         period: b.period as 'monthly' | 'weekly' | 'yearly'
       }));
 
@@ -72,7 +72,7 @@ export const useBudgets = () => {
       const newBudget: Budget = {
         id: data.id,
         category: data.category,
-        limit: parseFloat(data.limit_amount),
+        limit: data.limit_amount,
         period: data.period as 'monthly' | 'weekly' | 'yearly'
       };
 
