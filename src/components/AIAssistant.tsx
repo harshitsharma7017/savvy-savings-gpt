@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Transaction, Budget } from "@/types/finance";
+import { MessageCircle, Send, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Bot, User } from "lucide-react";
 
 interface AIAssistantProps {
   transactions: Transaction[];
@@ -25,155 +25,137 @@ const AIAssistant = ({ transactions, budgets }: AIAssistantProps) => {
     {
       id: '1',
       type: 'ai',
-      content: "Hello! I'm your AI budgeting assistant. I can help you analyze your spending patterns, suggest ways to save money, and provide personalized financial advice. Try asking me something like 'How can I save more next month?' or 'What are my biggest expenses?'",
+      content: "Hello! I'm your AI financial assistant. I can help you analyze your spending, create budgets, and provide personalized financial advice. Try asking me 'How can I save more next month?' or 'What's my biggest expense category?'",
       timestamp: new Date()
     }
   ]);
-  const [input, setInput] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const generateAIResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
+  const analyzeFinances = (question: string): string => {
+    const totalIncome = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
     
-    // Calculate some basic stats
-    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
     const savings = totalIncome - totalExpenses;
-    
-    // Category analysis
+    const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0;
+
+    // Analyze expenses by category
     const expensesByCategory: { [key: string]: number } = {};
-    transactions.filter(t => t.type === 'expense').forEach(t => {
-      expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-    });
-    
-    const topExpenseCategory = Object.entries(expensesByCategory)
-      .sort(([,a], [,b]) => b - a)[0];
+    transactions
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+      });
 
-    // Generate contextual responses
-    if (lowerMessage.includes('save') && lowerMessage.includes('month')) {
-      if (savings < 0) {
-        return `I notice you're spending more than you earn (${Math.abs(savings).toFixed(2)} over budget). Here are some ways to save next month:
+    const sortedExpenses = Object.entries(expensesByCategory)
+      .sort(([,a], [,b]) => b - a);
 
-1. **Reduce your biggest expense**: Your highest spending category is "${topExpenseCategory?.[0] || 'unknown'}" at $${topExpenseCategory?.[1]?.toFixed(2) || '0'}. Try to cut this by 20%.
+    const question_lower = question.toLowerCase();
 
-2. **Track daily expenses**: Small purchases add up quickly. Consider using the 50/30/20 rule: 50% needs, 30% wants, 20% savings.
+    if (question_lower.includes('save more') || question_lower.includes('savings')) {
+      if (savingsRate < 10) {
+        return `Your current savings rate is ${savingsRate.toFixed(1)}%, which is below the recommended 10-20%. Here are some ways to save more:
 
-3. **Set a realistic budget**: Create budgets for each category and stick to them.
+1. **Reduce your biggest expense**: Your top spending category is ${sortedExpenses[0]?.[0] || 'N/A'} at $${sortedExpenses[0]?.[1]?.toFixed(2) || '0'}
+2. **Set up automatic transfers**: Move money to savings right after you get paid
+3. **Track small expenses**: They add up quickly!
+4. **Consider the 50/30/20 rule**: 50% needs, 30% wants, 20% savings
 
-4. **Find cheaper alternatives**: Look for discounts, compare prices, and consider generic brands.
-
-Would you like me to help you create a specific savings plan?`;
+Your current monthly surplus/deficit: $${savings.toFixed(2)}`;
       } else {
-        return `Great news! You're already saving $${savings.toFixed(2)}. To save even more next month:
+        return `Great job! Your savings rate is ${savingsRate.toFixed(1)}%, which is healthy. To save even more:
 
-1. **Automate your savings**: Set up automatic transfers to savings accounts.
+1. **Optimize your ${sortedExpenses[0]?.[0] || 'top'} spending** - currently $${sortedExpenses[0]?.[1]?.toFixed(2) || '0'}
+2. **Increase your income** through side hustles or skill development
+3. **Automate investments** to grow your money over time
 
-2. **Challenge yourself**: Try to reduce your "${topExpenseCategory?.[0] || 'top spending'}" category by 10%.
-
-3. **Use the envelope method**: Allocate cash for discretionary spending categories.
-
-4. **Review subscriptions**: Cancel unused memberships and services.
-
-Your current savings rate is ${((savings/totalIncome)*100).toFixed(1)}%. Aim for at least 20% if possible!`;
+Keep up the excellent work!`;
       }
     }
-    
-    if (lowerMessage.includes('biggest') && lowerMessage.includes('expense')) {
-      if (topExpenseCategory) {
-        return `Your biggest expense category is **${topExpenseCategory[0]}** with $${topExpenseCategory[1].toFixed(2)} spent.
 
-Here's your expense breakdown:
-${Object.entries(expensesByCategory)
-  .sort(([,a], [,b]) => b - a)
-  .slice(0, 5)
-  .map(([cat, amount], i) => `${i + 1}. ${cat}: $${amount.toFixed(2)}`)
-  .join('\n')}
-
-Consider focusing on reducing your top 2-3 categories for maximum impact on your budget.`;
-      } else {
-        return "I don't see any expense data yet. Start by adding some transactions to get personalized insights about your spending patterns!";
+    if (question_lower.includes('biggest expense') || question_lower.includes('spending most')) {
+      if (sortedExpenses.length === 0) {
+        return "You haven't recorded any expenses yet. Start adding your transactions to get personalized insights!";
       }
-    }
-    
-    if (lowerMessage.includes('budget') || lowerMessage.includes('plan')) {
-      return `Based on your current financial situation:
-
-**Income**: $${totalIncome.toFixed(2)}
-**Expenses**: $${totalExpenses.toFixed(2)}
-**Net**: $${savings.toFixed(2)}
-
-Here's a recommended budget plan using the 50/30/20 rule:
-- **Needs (50%)**: $${(totalIncome * 0.5).toFixed(2)} - housing, utilities, groceries, minimum debt payments
-- **Wants (30%)**: $${(totalIncome * 0.3).toFixed(2)} - entertainment, dining out, hobbies
-- **Savings (20%)**: $${(totalIncome * 0.2).toFixed(2)} - emergency fund, investments, extra debt payments
-
-${budgets.length > 0 ? `You currently have ${budgets.length} budget(s) set up. Great start!` : 'Consider creating budgets for your major expense categories.'}`;
-    }
-    
-    if (lowerMessage.includes('emergency') || lowerMessage.includes('fund')) {
-      const monthlyExpenses = totalExpenses; // Assuming current data represents monthly
-      const recommendedEmergencyFund = monthlyExpenses * 6;
       
-      return `An emergency fund should cover 3-6 months of expenses. Based on your spending:
-
-**Your monthly expenses**: ~$${monthlyExpenses.toFixed(2)}
-**Recommended emergency fund**: $${recommendedEmergencyFund.toFixed(2)}
-
-Start with a goal of $1,000, then build up to one month of expenses, then gradually increase to 6 months. Even $25-50 per month adds up over time!`;
+      let response = `Your biggest expense categories are:\n\n`;
+      sortedExpenses.slice(0, 3).forEach(([category, amount], index) => {
+        response += `${index + 1}. **${category}**: $${amount.toFixed(2)}\n`;
+      });
+      
+      response += `\nConsider reviewing your ${sortedExpenses[0][0]} spending to find potential savings opportunities.`;
+      return response;
     }
-    
-    // Default responses for common topics
-    if (lowerMessage.includes('debt')) {
-      return "For debt management, I recommend the debt avalanche method: pay minimums on all debts, then focus extra payments on the highest interest rate debt. This saves you the most money long-term.";
-    }
-    
-    if (lowerMessage.includes('invest')) {
-      return "Before investing, ensure you have an emergency fund and are contributing to any employer 401k match. For beginners, consider low-cost index funds or target-date funds. Always do your research or consult a financial advisor!";
-    }
-    
-    // Generic helpful response
-    return `I'd be happy to help with your finances! Here are some things I can assist with:
 
-- Analyzing your spending patterns
-- Suggesting ways to save money
-- Creating budget recommendations
-- Emergency fund planning
-- Debt management strategies
-- General financial tips
+    if (question_lower.includes('budget') || question_lower.includes('spending limit')) {
+      if (budgets.length === 0) {
+        return "You haven't set up any budgets yet! I recommend creating budgets for your top spending categories. Start with the 'Budget' tab to set spending limits.";
+      }
+      
+      let response = "Here's your budget overview:\n\n";
+      budgets.forEach(budget => {
+        const spent = expensesByCategory[budget.category] || 0;
+        const remaining = budget.limit - spent;
+        const percentage = (spent / budget.limit) * 100;
+        
+        response += `**${budget.category}** (${budget.period}): $${spent.toFixed(2)}/$${budget.limit.toFixed(2)} - ${percentage.toFixed(1)}% used\n`;
+        
+        if (percentage > 90) {
+          response += `⚠️ You're close to your limit!\n`;
+        } else if (percentage > 100) {
+          response += `🚨 You've exceeded your budget by $${Math.abs(remaining).toFixed(2)}!\n`;
+        }
+        response += `\n`;
+      });
+      
+      return response;
+    }
 
-Try asking me about your biggest expenses, how to save more, or request a budget analysis!`;
+    if (question_lower.includes('income') || question_lower.includes('earn')) {
+      return `Your total recorded income is $${totalIncome.toFixed(2)}. ${totalIncome === 0 ? "Consider adding your income sources to get better financial insights!" : `Your income covers ${totalExpenses > 0 ? ((totalIncome / totalExpenses) * 100).toFixed(1) : 'N/A'}% of your expenses.`}`;
+    }
+
+    // Default response
+    return `I can help you with various financial questions! Try asking about:
+    
+• "How can I save more next month?"
+• "What's my biggest expense category?"
+• "How am I doing with my budget?"
+• "What's my savings rate?"
+
+Based on your current data:
+- Total Income: $${totalIncome.toFixed(2)}
+- Total Expenses: $${totalExpenses.toFixed(2)}
+- Net Savings: $${savings.toFixed(2)}
+- Savings Rate: ${savingsRate.toFixed(1)}%`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!input.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a message",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: input.trim(),
+      content: inputMessage,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    set loading(true);
+    setInputMessage('');
+    setIsLoading(true);
 
-    // Simulate AI processing delay
+    // Simulate AI processing time
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: generateAIResponse(userMessage.content),
+        content: analyzeFinances(inputMessage),
         timestamp: new Date()
       };
 
@@ -182,72 +164,129 @@ Try asking me about your biggest expenses, how to save more, or request a budget
     }, 1000);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          AI Budgeting Assistant
-        </CardTitle>
-        <CardDescription>
-          Get personalized financial advice and insights based on your spending patterns
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="flex-1 flex flex-col">
-        <ScrollArea className="flex-1 pr-4">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            AI Financial Assistant
+          </CardTitle>
+          <CardDescription>
+            Get personalized financial advice based on your spending patterns
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-                  }`}>
-                    {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+            <ScrollArea className="h-96 border rounded-md p-4">
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`flex gap-2 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}>
+                        {message.type === 'user' ? (
+                          <User className="h-4 w-4 text-white" />
+                        ) : (
+                          <Bot className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                      <div className={`rounded-lg p-3 ${
+                        message.type === 'user' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <p className="text-sm whitespace-pre-line">{message.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {message.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className={`rounded-lg p-3 ${
-                    message.type === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-secondary text-secondary-foreground'
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+                ))}
+                {isLoading && (
+                  <div className="flex gap-3 justify-start">
+                    <div className="flex gap-2 max-w-[80%]">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-green-500">
+                        <Bot className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="rounded-lg p-3 bg-gray-100">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div className="bg-secondary text-secondary-foreground rounded-lg p-3">
-                  <p className="text-sm">Thinking...</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+            </ScrollArea>
 
-        <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me about your finances..."
-            disabled={isLoading}
-          />
-          <Button type="submit" disabled={isLoading}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask me about your finances..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={isLoading}
+              />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={isLoading || !inputMessage.trim()}
+                size="icon"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              className="h-auto p-4 text-left justify-start"
+              onClick={() => setInputMessage("How can I save more next month?")}
+            >
+              <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Savings Tips</p>
+                <p className="text-sm text-muted-foreground">Get personalized advice</p>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-auto p-4 text-left justify-start"
+              onClick={() => setInputMessage("What's my biggest expense category?")}
+            >
+              <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Spending Analysis</p>
+                <p className="text-sm text-muted-foreground">Analyze your expenses</p>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
