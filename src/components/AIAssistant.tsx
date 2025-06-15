@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Transaction, Budget } from "@/types/finance";
-import { MessageCircle, Send, Bot, User } from "lucide-react";
+import { MessageCircle, Send, Bot, User, Sparkles, TrendingUp, PiggyBank } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantProps {
@@ -25,7 +24,7 @@ const AIAssistant = ({ transactions, budgets }: AIAssistantProps) => {
     {
       id: '1',
       type: 'ai',
-      content: "Hello! I'm your AI financial assistant. I can help you analyze your spending, create budgets, and provide personalized financial advice. Try asking me 'How can I save more next month?' or 'What's my biggest expense category?'",
+      content: "👋 Hello! I'm your AI financial assistant. I can help you analyze your spending, create budgets, and provide personalized financial advice. Try asking me 'How can I save more next month?' or 'What's my biggest expense category?'",
       timestamp: new Date()
     }
   ]);
@@ -172,43 +171,51 @@ Based on your current data:
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            AI Financial Assistant
-          </CardTitle>
-          <CardDescription>
-            Get personalized financial advice based on your spending patterns
-          </CardDescription>
+    <div className="space-y-8">
+      <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-blue-50 to-indigo-50 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10">
+            <CardTitle className="text-3xl font-bold flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Bot className="h-8 w-8" />
+              </div>
+              AI Financial Assistant
+              <Sparkles className="h-6 w-6 text-yellow-300 animate-pulse" />
+            </CardTitle>
+            <CardDescription className="text-blue-100 text-lg mt-2">
+              Get personalized financial advice powered by intelligent analysis
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <ScrollArea className="h-96 border rounded-md p-4">
-              <div className="space-y-4">
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            <ScrollArea className="h-96 border-2 border-blue-100 rounded-xl p-6 bg-white/60 backdrop-blur-sm shadow-inner">
+              <div className="space-y-6">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`flex gap-2 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
+                    <div className={`flex gap-3 max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
+                        message.type === 'user' 
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500' 
+                          : 'bg-gradient-to-r from-green-500 to-emerald-500'
                       }`}>
                         {message.type === 'user' ? (
-                          <User className="h-4 w-4 text-white" />
+                          <User className="h-5 w-5 text-white" />
                         ) : (
-                          <Bot className="h-4 w-4 text-white" />
+                          <Bot className="h-5 w-5 text-white" />
                         )}
                       </div>
-                      <div className={`rounded-lg p-3 ${
+                      <div className={`rounded-2xl p-4 shadow-lg backdrop-blur-sm ${
                         message.type === 'user' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white' 
+                          : 'bg-white/90 text-gray-800 border border-gray-100'
                       }`}>
-                        <p className="text-sm whitespace-pre-line">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
+                        <p className="text-sm leading-relaxed whitespace-pre-line font-medium">{message.content}</p>
+                        <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
                           {message.timestamp.toLocaleTimeString()}
                         </p>
                       </div>
@@ -216,16 +223,16 @@ Based on your current data:
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="flex gap-2 max-w-[80%]">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-green-500">
-                        <Bot className="h-4 w-4 text-white" />
+                  <div className="flex gap-4 justify-start">
+                    <div className="flex gap-3 max-w-[85%]">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg">
+                        <Bot className="h-5 w-5 text-white" />
                       </div>
-                      <div className="rounded-lg p-3 bg-gray-100">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className="rounded-2xl p-4 bg-white/90 shadow-lg backdrop-blur-sm border border-gray-100">
+                        <div className="flex space-x-2">
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-bounce"></div>
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
                       </div>
                     </div>
@@ -234,53 +241,66 @@ Based on your current data:
               </div>
             </ScrollArea>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Input
                 placeholder="Ask me about your finances..."
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 disabled={isLoading}
+                className="h-12 text-base border-2 border-blue-200 focus:border-blue-400 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm"
               />
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || !inputMessage.trim()}
                 size="icon"
+                className="h-12 w-12 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-lg transition-all duration-200"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Insights</CardTitle>
+      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-t-lg">
+          <CardTitle className="text-2xl font-bold flex items-center gap-3">
+            <TrendingUp className="h-6 w-6" />
+            Quick Insights
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Button
               variant="outline"
-              className="h-auto p-4 text-left justify-start"
+              className="h-auto p-6 text-left justify-start border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200 bg-white/60 backdrop-blur-sm"
               onClick={() => setInputMessage("How can I save more next month?")}
             >
-              <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Savings Tips</p>
-                <p className="text-sm text-muted-foreground">Get personalized advice</p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white">
+                  <PiggyBank className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg text-gray-900">Savings Tips</p>
+                  <p className="text-sm text-gray-600 mt-1">Get personalized advice to boost your savings</p>
+                </div>
               </div>
             </Button>
             
             <Button
               variant="outline"
-              className="h-auto p-4 text-left justify-start"
+              className="h-auto p-6 text-left justify-start border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200 bg-white/60 backdrop-blur-sm"
               onClick={() => setInputMessage("What's my biggest expense category?")}
             >
-              <MessageCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Spending Analysis</p>
-                <p className="text-sm text-muted-foreground">Analyze your expenses</p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl text-white">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg text-gray-900">Spending Analysis</p>
+                  <p className="text-sm text-gray-600 mt-1">Discover where your money goes</p>
+                </div>
               </div>
             </Button>
           </div>
