@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Budget } from "@/types/finance";
 import { useToast } from "@/hooks/use-toast";
+import { useBudgets } from "@/hooks/useBudgets";
 import { Trash2 } from "lucide-react";
 
 interface BudgetPlannerProps {
@@ -31,9 +32,11 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
   const [period, setPeriod] = useState<'monthly' | 'weekly' | 'yearly'>('monthly');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { deleteBudget } = useBudgets();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!category || !limit) {
@@ -45,31 +48,30 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
       return;
     }
 
-    const existingBudget = budgets.find(b => b.category === category && b.period === period);
-    if (existingBudget) {
-      toast({
-        title: "Error",
-        description: "Budget for this category and period already exists",
-        variant: "destructive",
+    setIsSubmitting(true);
+    
+    try {
+      await onAddBudget({
+        category,
+        limit: parseFloat(limit),
+        period
       });
-      return;
+
+      // Reset form on successful submission
+      setCategory('');
+      setLimit('');
+      setPeriod('monthly');
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    onAddBudget({
-      category,
-      limit: parseFloat(limit),
-      period
-    });
-
-    // Reset form
-    setCategory('');
-    setLimit('');
-    setPeriod('monthly');
-
-    toast({
-      title: "Success",
-      description: "Budget created successfully!",
-    });
+  const handleDeleteBudget = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this budget?')) {
+      await deleteBudget(id);
+    }
   };
 
   return (
@@ -84,7 +86,7 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select value={category} onValueChange={setCategory} disabled={isSubmitting}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -108,12 +110,13 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
                   value={limit}
                   onChange={(e) => setLimit(e.target.value)}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="period">Period</Label>
-                <Select value={period} onValueChange={(value) => setPeriod(value as 'monthly' | 'weekly' | 'yearly')}>
+                <Select value={period} onValueChange={(value) => setPeriod(value as 'monthly' | 'weekly' | 'yearly')} disabled={isSubmitting}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -126,8 +129,8 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              Create Budget
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating Budget...' : 'Create Budget'}
             </Button>
           </form>
         </CardContent>
@@ -140,7 +143,12 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{budget.category}</CardTitle>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleDeleteBudget(budget.id)}
+                  className="hover:bg-red-100 hover:text-red-600"
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

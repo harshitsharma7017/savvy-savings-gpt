@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionForm from "@/components/TransactionForm";
@@ -7,28 +7,26 @@ import Dashboard from "@/components/Dashboard";
 import AIAssistant from "@/components/AIAssistant";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Transaction, Budget } from "@/types/finance";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useBudgets } from "@/hooks/useBudgets";
 import { Wallet, TrendingUp, Target, Bot } from "lucide-react";
 
 const Index = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const { transactions, loading: transactionsLoading, addTransaction } = useTransactions();
+  const { budgets, loading: budgetsLoading, addBudget } = useBudgets();
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Date.now().toString()
-    };
-    setTransactions(prev => [...prev, newTransaction]);
-  };
+  const isLoading = transactionsLoading || budgetsLoading;
 
-  const addBudget = (budget: Omit<Budget, 'id'>) => {
-    const newBudget: Budget = {
-      ...budget,
-      id: Date.now().toString()
-    };
-    setBudgets(prev => [...prev, newBudget]);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your financial data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">

@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/types/finance";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,9 +40,10 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!amount || !category) {
@@ -55,24 +55,27 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
       return;
     }
 
-    onAddTransaction({
-      type,
-      amount: parseFloat(amount),
-      category,
-      description,
-      date
-    });
+    setIsSubmitting(true);
+    
+    try {
+      await onAddTransaction({
+        type,
+        amount: parseFloat(amount),
+        category,
+        description,
+        date
+      });
 
-    // Reset form
-    setAmount('');
-    setCategory('');
-    setDescription('');
-    setDate(new Date().toISOString().split('T')[0]);
-
-    toast({
-      title: "Success",
-      description: "Transaction added successfully!",
-    });
+      // Reset form on successful submission
+      setAmount('');
+      setCategory('');
+      setDescription('');
+      setDate(new Date().toISOString().split('T')[0]);
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
@@ -104,6 +107,7 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
+            disabled={isSubmitting}
           />
         </div>
 
@@ -114,13 +118,14 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            disabled={isSubmitting}
           />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="category">Category *</Label>
-        <Select value={category} onValueChange={setCategory}>
+        <Select value={category} onValueChange={setCategory} disabled={isSubmitting}>
           <SelectTrigger>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
@@ -141,11 +146,12 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
           placeholder="Add a note about this transaction..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          disabled={isSubmitting}
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        Add Transaction
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? 'Adding Transaction...' : 'Add Transaction'}
       </Button>
     </form>
   );
