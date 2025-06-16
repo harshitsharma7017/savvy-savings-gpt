@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Respon
 import { Transaction, Budget, CategoryData } from "@/types/finance";
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, Trash2, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -16,6 +17,8 @@ interface DashboardProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF7C7C', '#8DD1E1'];
 
 const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProps) => {
+  const { formatCurrency } = useCurrency();
+
   const stats = useMemo(() => {
     const totalIncome = transactions
       .filter(t => t.type === 'income')
@@ -110,7 +113,7 @@ const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProp
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${stats.totalIncome.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalIncome)}</div>
           </CardContent>
         </Card>
 
@@ -120,7 +123,7 @@ const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProp
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">${stats.totalExpenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(stats.totalExpenses)}</div>
           </CardContent>
         </Card>
 
@@ -131,7 +134,7 @@ const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProp
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${stats.savings >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-              ${stats.savings.toFixed(2)}
+              {formatCurrency(stats.savings)}
             </div>
           </CardContent>
         </Card>

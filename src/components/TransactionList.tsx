@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Transaction } from "@/types/finance";
 import { Trash2, Receipt } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -11,12 +12,7 @@ interface TransactionListProps {
 }
 
 const TransactionList = ({ transactions, onDeleteTransaction }: TransactionListProps) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrency();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
