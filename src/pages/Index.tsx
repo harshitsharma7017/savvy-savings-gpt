@@ -42,7 +42,7 @@ const Index = () => {
                   <Wallet className="h-8 w-8 text-white" />
                 </div>
                 <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                  Finance Tracker
+                  Auto Fund
                 </h1>
               </div>
               <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">

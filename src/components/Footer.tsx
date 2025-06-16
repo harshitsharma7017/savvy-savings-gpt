@@ -13,7 +13,7 @@ const Footer = () => {
                 <Wallet className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Finance Tracker</h3>
+                <h3 className="text-xl font-bold">Auto Fund</h3>
                 <p className="text-sm text-blue-200">Smart Financial Management</p>
               </div>
             </div>
