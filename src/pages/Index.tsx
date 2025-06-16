@@ -7,12 +7,13 @@ import Dashboard from "@/components/Dashboard";
 import AIAssistant from "@/components/AIAssistant";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TransactionList from "@/components/TransactionList";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import { Wallet, TrendingUp, Target, Bot } from "lucide-react";
 
 const Index = () => {
-  const { transactions, loading: transactionsLoading, addTransaction } = useTransactions();
+  const { transactions, loading: transactionsLoading, addTransaction, deleteTransaction } = useTransactions();
   const { budgets, loading: budgetsLoading, addBudget } = useBudgets();
 
   const isLoading = transactionsLoading || budgetsLoading;
@@ -81,10 +82,10 @@ const Index = () => {
             </TabsList>
 
             <TabsContent value="dashboard" className="animate-fade-in">
-              <Dashboard transactions={transactions} budgets={budgets} />
+              <Dashboard transactions={transactions} budgets={budgets} onDeleteTransaction={deleteTransaction} />
             </TabsContent>
 
-            <TabsContent value="transactions" className="animate-fade-in">
+            <TabsContent value="transactions" className="animate-fade-in space-y-6">
               <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-t-lg">
                   <CardTitle className="text-2xl font-bold flex items-center gap-3">
@@ -99,6 +100,8 @@ const Index = () => {
                   <TransactionForm onAddTransaction={addTransaction} />
                 </CardContent>
               </Card>
+              
+              <TransactionList transactions={transactions} onDeleteTransaction={deleteTransaction} />
             </TabsContent>
 
             <TabsContent value="budget" className="animate-fade-in">

@@ -1,19 +1,20 @@
-
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Transaction, Budget, CategoryData } from "@/types/finance";
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import TransactionList from "./TransactionList";
 
 interface DashboardProps {
   transactions: Transaction[];
   budgets: Budget[];
+  onDeleteTransaction: (id: string) => void;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF7C7C', '#8DD1E1'];
 
-const Dashboard = ({ transactions, budgets }: DashboardProps) => {
+const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProps) => {
   const stats = useMemo(() => {
     const totalIncome = transactions
       .filter(t => t.type === 'income')
@@ -197,6 +198,9 @@ const Dashboard = ({ transactions, budgets }: DashboardProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Transaction List */}
+      <TransactionList transactions={transactions} onDeleteTransaction={onDeleteTransaction} />
     </div>
   );
 };
