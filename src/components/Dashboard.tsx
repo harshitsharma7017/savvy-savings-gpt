@@ -1,10 +1,11 @@
+
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Transaction, Budget, CategoryData } from "@/types/finance";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
-import TransactionList from "./TransactionList";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, Trash2, Receipt } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -82,6 +83,21 @@ const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProp
       label: "Savings",
       color: "#3B82F6",
     },
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -199,8 +215,78 @@ const Dashboard = ({ transactions, budgets, onDeleteTransaction }: DashboardProp
         </Card>
       </div>
 
-      {/* Transaction List */}
-      <TransactionList transactions={transactions} onDeleteTransaction={onDeleteTransaction} />
+      {/* Transaction Cards */}
+      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
+          <CardTitle className="text-2xl font-bold flex items-center gap-3">
+            <Receipt className="h-6 w-6" />
+            Recent Transactions
+          </CardTitle>
+          <CardDescription className="text-slate-100">
+            Your latest financial activity
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          {transactions.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg font-medium">No transactions yet</p>
+              <p className="text-sm">Add your first transaction to get started</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {transactions.slice(0, 6).map((transaction) => (
+                <Card key={transaction.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            transaction.type === 'income' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {transaction.type === 'income' ? '+ Income' : '- Expense'}
+                          </span>
+                        </div>
+                        <h3 className="font-medium text-sm capitalize">{transaction.category}</h3>
+                        <p className="text-xs text-gray-600 truncate">
+                          {transaction.description || 'No description'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDeleteTransaction(transaction.id)}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 h-auto"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">
+                        {formatDate(transaction.date)}
+                      </span>
+                      <span className={`font-bold text-sm ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          {transactions.length > 6 && (
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-500">
+                Showing 6 of {transactions.length} transactions. View all in the Transactions tab.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
