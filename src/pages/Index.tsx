@@ -7,13 +7,15 @@ import Dashboard from "@/components/Dashboard";
 import AIAssistant from "@/components/AIAssistant";
 import BillsManager from "@/components/BillsManager";
 import ImportantFeatures from "@/components/ImportantFeatures";
+import StreaksRewards from "@/components/StreaksRewards";
+import Challenges from "@/components/Challenges";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TransactionList from "@/components/TransactionList";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { Wallet, TrendingUp, Target, Bot, Receipt, Star } from "lucide-react";
+import { Wallet, TrendingUp, Target, Bot, Receipt, Star, Trophy, Zap } from "lucide-react";
 
 const Index = () => {
   const { transactions, loading: transactionsLoading, addTransaction, deleteTransaction } = useTransactions();
@@ -54,7 +56,7 @@ const Index = () => {
             </div>
 
             <Tabs defaultValue="dashboard" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border shadow-lg rounded-xl p-2 h-16">
+              <TabsList className="grid w-full grid-cols-8 bg-white/80 backdrop-blur-sm border shadow-lg rounded-xl p-2 h-16">
                 <TabsTrigger 
                   value="dashboard" 
                   className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
@@ -89,6 +91,20 @@ const Index = () => {
                 >
                   <Star className="h-4 w-4" />
                   Features
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="rewards" 
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                >
+                  <Trophy className="h-4 w-4" />
+                  Rewards
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="challenges" 
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                >
+                  <Zap className="h-4 w-4" />
+                  Challenges
                 </TabsTrigger>
                 <TabsTrigger 
                   value="ai-assistant" 
@@ -132,6 +148,14 @@ const Index = () => {
 
               <TabsContent value="features" className="animate-fade-in">
                 <ImportantFeatures transactions={transactions} budgets={budgets} />
+              </TabsContent>
+
+              <TabsContent value="rewards" className="animate-fade-in">
+                <StreaksRewards transactions={transactions} budgets={budgets} />
+              </TabsContent>
+
+              <TabsContent value="challenges" className="animate-fade-in">
+                <Challenges transactions={transactions} />
               </TabsContent>
 
               <TabsContent value="ai-assistant" className="animate-fade-in">
