@@ -6,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Budget } from "@/types/finance";
+import { Budget, Transaction } from "@/types/finance";
 import { useToast } from "@/hooks/use-toast";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Trash2 } from "lucide-react";
 
 interface BudgetPlannerProps {
   budgets: Budget[];
+  transactions: Transaction[];
   onAddBudget: (budget: Omit<Budget, 'id'>) => void;
 }
 
@@ -28,13 +30,47 @@ const CATEGORIES = [
   "Other"
 ];
 
-const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
+const BudgetPlanner = ({ budgets, transactions, onAddBudget }: BudgetPlannerProps) => {
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
   const [period, setPeriod] = useState<'monthly' | 'weekly' | 'yearly'>('monthly');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { deleteBudget } = useBudgets();
+  const { formatCurrency } = useCurrency();
   const { toast } = useToast();
+
+  const calculateSpentAmount = (budget: Budget) => {
+    const now = new Date();
+    let startDate: Date;
+    
+    // Calculate the start date based on budget period
+    switch (budget.period) {
+      case 'weekly':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'yearly':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case 'monthly':
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+
+    // Filter transactions for this category and period
+    const categoryTransactions = transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      return (
+        transaction.type === 'expense' &&
+        transaction.category === budget.category &&
+        transactionDate >= startDate &&
+        transactionDate <= now
+      );
+    });
+
+    // Sum up the amounts
+    return categoryTransactions.reduce((total, transaction) => total + transaction.amount, 0);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,36 +174,57 @@ const BudgetPlanner = ({ budgets, onAddBudget }: BudgetPlannerProps) => {
 
       {/* Budget List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {budgets.map((budget) => (
-          <Card key={budget.id}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{budget.category}</CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleDeleteBudget(budget.id)}
-                  className="hover:bg-red-100 hover:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <CardDescription className="capitalize">{budget.period} Budget</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Spent: $0.00</span>
-                  <span>Limit: ${budget.limit.toFixed(2)}</span>
+        {budgets.map((budget) => {
+          const spentAmount = calculateSpentAmount(budget);
+          const remainingAmount = budget.limit - spentAmount;
+          const progressPercentage = Math.min((spentAmount / budget.limit) * 100, 100);
+          const isOverBudget = spentAmount > budget.limit;
+
+          return (
+            <Card key={budget.id} className={`${isOverBudget ? 'border-red-200 bg-red-50' : ''}`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{budget.category}</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleDeleteBudget(budget.id)}
+                    className="hover:bg-red-100 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Progress value={0} className="w-full" />
-                <p className="text-xs text-muted-foreground">
-                  ${budget.limit.toFixed(2)} remaining
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <CardDescription className="capitalize">{budget.period} Budget</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className={isOverBudget ? 'text-red-600 font-medium' : ''}>
+                      Spent: {formatCurrency(spentAmount)}
+                    </span>
+                    <span>Limit: {formatCurrency(budget.limit)}</span>
+                  </div>
+                  <Progress 
+                    value={progressPercentage} 
+                    className={`w-full ${isOverBudget ? 'bg-red-100' : ''}`}
+                  />
+                  <p className={`text-xs ${
+                    isOverBudget 
+                      ? 'text-red-600 font-medium' 
+                      : remainingAmount < budget.limit * 0.1 
+                        ? 'text-orange-600 font-medium' 
+                        : 'text-muted-foreground'
+                  }`}>
+                    {isOverBudget 
+                      ? `Over budget by ${formatCurrency(Math.abs(remainingAmount))}` 
+                      : `${formatCurrency(remainingAmount)} remaining`
+                    }
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {budgets.length === 0 && (

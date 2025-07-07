@@ -106,7 +106,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="budget" className="animate-fade-in">
-                <BudgetPlanner budgets={budgets} onAddBudget={addBudget} />
+                <BudgetPlanner budgets={budgets} transactions={transactions} onAddBudget={addBudget} />
               </TabsContent>
 
               <TabsContent value="ai-assistant" className="animate-fade-in">
