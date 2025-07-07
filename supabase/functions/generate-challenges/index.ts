@@ -15,7 +15,19 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting challenge generation...');
+    
+    if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY not found');
+      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { userProfile, transactions } = await req.json();
+    console.log('User profile:', userProfile);
+    console.log('Transaction count:', transactions?.length || 0);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -45,7 +57,9 @@ serve(async (req) => {
                 "reward": "reward description",
                 "difficulty": "Easy|Medium|Hard"
               }
-            ]`
+            ]
+            
+            Make sure the response is ONLY the JSON array, no additional text or formatting.`
           },
           {
             role: 'user',
@@ -66,8 +80,52 @@ serve(async (req) => {
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      return new Response(JSON.stringify({ error: 'Failed to generate challenges from OpenAI' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const data = await response.json();
-    const generatedChallenges = JSON.parse(data.choices[0].message.content);
+    console.log('OpenAI response data:', data);
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid OpenAI response structure:', data);
+      return new Response(JSON.stringify({ error: 'Invalid response from OpenAI' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const messageContent = data.choices[0].message.content;
+    console.log('OpenAI message content:', messageContent);
+
+    let generatedChallenges;
+    try {
+      generatedChallenges = JSON.parse(messageContent);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', parseError);
+      console.error('Raw content:', messageContent);
+      return new Response(JSON.stringify({ error: 'Failed to parse AI response' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!Array.isArray(generatedChallenges)) {
+      console.error('Generated challenges is not an array:', generatedChallenges);
+      return new Response(JSON.stringify({ error: 'Invalid challenge format from AI' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Successfully generated challenges:', generatedChallenges);
 
     return new Response(JSON.stringify({ challenges: generatedChallenges }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
