@@ -1,16 +1,19 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionForm from "@/components/TransactionForm";
 import BudgetPlanner from "@/components/BudgetPlanner";
 import Dashboard from "@/components/Dashboard";
 import AIAssistant from "@/components/AIAssistant";
+import BillsManager from "@/components/BillsManager";
+import ImportantFeatures from "@/components/ImportantFeatures";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TransactionList from "@/components/TransactionList";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { Wallet, TrendingUp, Target, Bot } from "lucide-react";
+import { Wallet, TrendingUp, Target, Bot, Receipt, Star } from "lucide-react";
 
 const Index = () => {
   const { transactions, loading: transactionsLoading, addTransaction, deleteTransaction } = useTransactions();
@@ -51,33 +54,47 @@ const Index = () => {
             </div>
 
             <Tabs defaultValue="dashboard" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border shadow-lg rounded-xl p-2 h-16">
+              <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border shadow-lg rounded-xl p-2 h-16">
                 <TabsTrigger 
                   value="dashboard" 
-                  className="flex items-center gap-2 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
                 >
-                  <TrendingUp className="h-5 w-5" />
+                  <TrendingUp className="h-4 w-4" />
                   Dashboard
                 </TabsTrigger>
                 <TabsTrigger 
                   value="transactions" 
-                  className="flex items-center gap-2 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
                 >
-                  <Wallet className="h-5 w-5" />
+                  <Wallet className="h-4 w-4" />
                   Transactions
                 </TabsTrigger>
                 <TabsTrigger 
                   value="budget" 
-                  className="flex items-center gap-2 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
                 >
-                  <Target className="h-5 w-5" />
+                  <Target className="h-4 w-4" />
                   Budget
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="ai-assistant" 
-                  className="flex items-center gap-2 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                  value="bills" 
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
                 >
-                  <Bot className="h-5 w-5" />
+                  <Receipt className="h-4 w-4" />
+                  Bills
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="features" 
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                >
+                  <Star className="h-4 w-4" />
+                  Features
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ai-assistant" 
+                  className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-200"
+                >
+                  <Bot className="h-4 w-4" />
                   AI Assistant
                 </TabsTrigger>
               </TabsList>
@@ -107,6 +124,14 @@ const Index = () => {
 
               <TabsContent value="budget" className="animate-fade-in">
                 <BudgetPlanner budgets={budgets} transactions={transactions} onAddBudget={addBudget} />
+              </TabsContent>
+
+              <TabsContent value="bills" className="animate-fade-in">
+                <BillsManager />
+              </TabsContent>
+
+              <TabsContent value="features" className="animate-fade-in">
+                <ImportantFeatures transactions={transactions} budgets={budgets} />
               </TabsContent>
 
               <TabsContent value="ai-assistant" className="animate-fade-in">
