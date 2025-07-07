@@ -39,10 +39,11 @@ const menuItems = [
 ];
 
 const AppSidebar = ({ activeTab, setActiveTab }: AppSidebarProps) => {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible>
+    <Sidebar className={isCollapsed ? "w-14" : "w-60"} collapsible="icon">
       <div className="p-4">
         <SidebarTrigger className="mb-4" />
       </div>
@@ -63,7 +64,7 @@ const AppSidebar = ({ activeTab, setActiveTab }: AppSidebarProps) => {
                     } transition-all duration-200`}
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
+                    {!isCollapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
